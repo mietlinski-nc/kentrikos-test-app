@@ -16,7 +16,7 @@ pipeline {
     stages {
         stage('Git clone') {
             steps {
-                gitCloneAppRepo repo: "$REPO_URL",
+                gitCloneAppRepo repo: "$REPO_URL"
             }
         }
 
