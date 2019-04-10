@@ -54,7 +54,7 @@ pipeline {
             }
         }
 
-        stage('Create $PRODUCT_DOMAIN_NAME namespace) {
+        stage('Create $PRODUCT_DOMAIN_NAME namespace') {
             steps {
                 withProxyEnv() {
                                 script {
