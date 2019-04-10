@@ -23,7 +23,7 @@ pipeline {
 
         stage('Create ECR') {
             steps {
-                ecrCreateRepository repo_name: $ECR_REPO_NAME
+                ecrCreateRepository repo_name: "$ECR_REPO_NAME"
             }
         }
         stage('Docker Build') {
