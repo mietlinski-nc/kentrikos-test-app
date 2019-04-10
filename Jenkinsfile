@@ -7,7 +7,8 @@ pipeline {
         timeout(time: 60, unit: 'MINUTES')
     }
     environment {
-        REPO_URL = 'env-eks'
+        K8S_FLAVOR = 'env-kops'
+        REPO_URL = 'https://github.com/radepal/kentrikos-test-app.git'
         APP_NAME = 'kentrikos-hello-app'
         ECR_REPO_NAME = '${PRODUCT_DOMAIN_NAME}-${ENVIRONMENT_TYPE}/${APP_NAME}'
         ECR_REPO = '$AWS_OPERATIONS_ACCOUNT_NUMBER.dkr.ecr.$AWS_REGION.amazonaws.com/${ECR_REPO_NAME}'
