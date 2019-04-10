@@ -11,7 +11,7 @@ pipeline {
         REPO_URL = 'https://github.com/radepal/kentrikos-test-app.git'
         APP_NAME = 'kentrikos-hello-app'
         ECR_REPO_NAME = "$PRODUCT_DOMAIN_NAME-$ENVIRONMENT_TYPE/$APP_NAME"
-        ECR_REPO = "$AWS_OPERATIONS_ACCOUNT_NUMBER.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME"
+        ECR_REPO = "$AWS_OPERATIONS_ACCOUNT_NUMBER" + ".dkr.ecr." + "$AWS_REGION.amazonaws.com/$ECR_REPO_NAME"
     }
     agent any
     stages {
