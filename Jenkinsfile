@@ -79,7 +79,7 @@ pipeline {
 
                                         sh """
                                         #!/bin/bash
-                                        helm upgrade --install --wait --name $PRODUCT_DOMAIN_NAME --namespace $PRODUCT_DOMAIN_NAME helm/
+                                        helm upgrade --install --wait --set image.repository=$ECR_REPO  --namespace $PRODUCT_DOMAIN_NAME helm/
                                         """
                                     }
                                 }
