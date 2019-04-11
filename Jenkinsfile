@@ -78,11 +78,13 @@ pipeline {
                      ws("${env.JOB_NAME}-config") {
                                    gitCloneConfigRepo()
                                     dir("$OPERATION_DIR") {
+                                     script {
                                         def jenkins_parameters = readYaml file: 'jenkins/parameters.yaml'
                                              println "Getting domain name"
                                              def r53DomainName = sh(script: "aws route53 get-hosted-zone --id " + jenkins_parameters.domainHostedZoneID + " --output text --query 'HostedZone.Name'",
                                              returnStdout: true).trim().replaceAll("\\.\$", "")
                                              app_address = "$APP_NAME." + jenkins_parameters.domainAliasPrefix + "." + r53DomainName
+                                             }
                                 }
                                 }
                     }
