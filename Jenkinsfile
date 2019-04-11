@@ -1,7 +1,9 @@
 #!groovy
 
 library 'kentrikos-shared-library'
+
 def app_address = ""
+
 pipeline {
     options {
         timeout(time: 60, unit: 'MINUTES')
@@ -51,7 +53,7 @@ pipeline {
                 }
             }
         }
-        stage('Switch K8S context'){
+        stage('Switch K8S context') {
             steps {
                 kubectlSwitchContextOps()
             }
@@ -60,8 +62,8 @@ pipeline {
         stage('Create $PRODUCT_DOMAIN_NAME namespace') {
             steps {
                 withProxyEnv() {
-                                script {
-                                    sh '''
+                    script {
+                        sh '''
                                     #!/bin/bash -x
                                     if ! kubectl get namespace $PRODUCT_DOMAIN_NAME;
                                     then
@@ -69,43 +71,40 @@ pipeline {
                                         kubectl create namespace $PRODUCT_DOMAIN_NAME
                                     fi
                                     '''
-                                }
-                            }
-                 }
-        }
-         stage('Get Domain name') {
-                    steps {
-                     ws("${env.JOB_NAME}-config") {
-                                   gitCloneConfigRepo()
-                                    dir("$CONFIG_DIR") {
-                                      withProxyEnv() {
-                                     script {
-                                        def jenkins_parameters = readYaml file: 'jenkins/parameters.yaml'
-                                             println "Getting domain name"
-                                             def r53DomainName = sh(script: "aws route53 get-hosted-zone --id " + jenkins_parameters.domainHostedZoneID + " --output text --query 'HostedZone.Name'",
-                                             returnStdout: true).trim().replaceAll("\\.\$", "")
-                                             app_address = "$APP_NAME." + jenkins_parameters.domainAliasPrefix + "." + r53DomainName
-                                             }
-                                }
-                                }
-                                }
                     }
-         }
+                }
+            }
+        }
+        stage('Get Domain name') {
+            steps {
+                ws("${env.JOB_NAME}-config") {
+                    gitCloneConfigRepo()
+                    dir("$CONFIG_DIR") {
+                        withProxyEnv() {
+                            script {
+                                def jenkins_parameters = readYaml file: 'jenkins/parameters.yaml'
+                                println "Getting domain name"
+                                def r53DomainName = sh(script: "aws route53 get-hosted-zone --id " + jenkins_parameters.domainHostedZoneID + " --output text --query 'HostedZone.Name'",
+                                        returnStdout: true).trim().replaceAll("\\.\$", "")
+                                app_address = "$APP_NAME." + jenkins_parameters.domainAliasPrefix + "." + r53DomainName
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         stage('Deploy application') {
-                    steps {
-
-                            withProxyEnv() {
-                                    script {
-
-                                        sh """
-                                        #!/bin/bash
-                                        helm upgrade --install --wait --set image.repository=$ECR_REPO  --set=ingress.enabled=true,ingress.hosts={$app_address} --namespace $PRODUCT_DOMAIN_NAME $APP_NAME helm/
-                                        """
-                                    }
-                                }
-
+            steps {
+                withProxyEnv() {
+                    script {
+                        sh """
+                           #!/bin/bash
+                           helm upgrade --install --wait --set image.repository=$ECR_REPO  --set=ingress.enabled=true,ingress.hosts={$app_address} --namespace $PRODUCT_DOMAIN_NAME $APP_NAME helm/
+                         """
                     }
+                }
+            }
         }
     }
 }
