@@ -57,7 +57,7 @@ pipeline {
             }
         }
 
-        stage('Create $PRODUCT_DOMAIN_NAME namespace') {
+        stage("Create $PRODUCT_DOMAIN_NAME namespace") {
             steps {
                 withProxyEnv() {
                                 script {
@@ -73,7 +73,7 @@ pipeline {
                             }
                  }
         }
-         stage('Create $PRODUCT_DOMAIN_NAME namespace') {
+         stage('Get Domain name') {
                     steps {
                      ws("${env.JOB_NAME}-config") {
                                    gitCloneConfigRepo()
