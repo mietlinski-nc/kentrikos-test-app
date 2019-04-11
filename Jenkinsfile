@@ -78,6 +78,7 @@ pipeline {
                      ws("${env.JOB_NAME}-config") {
                                    gitCloneConfigRepo()
                                     dir("$CONFIG_DIR") {
+                                      withProxyEnv() {
                                      script {
                                         def jenkins_parameters = readYaml file: 'jenkins/parameters.yaml'
                                              println "Getting domain name"
@@ -85,6 +86,7 @@ pipeline {
                                              returnStdout: true).trim().replaceAll("\\.\$", "")
                                              app_address = "$APP_NAME." + jenkins_parameters.domainAliasPrefix + "." + r53DomainName
                                              }
+                                }
                                 }
                                 }
                     }
