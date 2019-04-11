@@ -77,7 +77,7 @@ pipeline {
                     steps {
                      ws("${env.JOB_NAME}-config") {
                                    gitCloneConfigRepo()
-                                    dir("$OPERATION_DIR") {
+                                    dir("$CONFIG_DIR") {
                                      script {
                                         def jenkins_parameters = readYaml file: 'jenkins/parameters.yaml'
                                              println "Getting domain name"
