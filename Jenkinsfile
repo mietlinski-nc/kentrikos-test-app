@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        K8S_FLAVOR = 'env-kops'
+        K8S_FLAVOR = 'kops'
         REPO_URL = 'https://github.com/radepal/kentrikos-test-app.git'
         APP_NAME = 'kentrikos-hello-app'
         ECR_REPO_NAME = "$PRODUCT_DOMAIN_NAME-$ENVIRONMENT_TYPE/$APP_NAME"
