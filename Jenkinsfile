@@ -115,6 +115,8 @@ pipeline {
                     script {
                         sh """
                            #!/bin/bash
+                           helm delete --purge --namespace $PRODUCT_DOMAIN_NAME $APP_NAME helm/
+                           sleep 5
                            helm upgrade --install --wait --set image.repository=$ECR_REPO  --set=ingress.enabled=true --namespace $PRODUCT_DOMAIN_NAME $APP_NAME helm/
                          """
                     }}
