@@ -53,6 +53,37 @@ pipeline {
                 }
             }
         }
+
+        stage('Grant Cross-Account access to ECR') {
+             steps {
+                 withProxyEnv() {
+                     script {
+                         def ecrPolicyJSON = """
+                         {
+                             "Version": "2012-10-17",
+                             "Statement": [
+                                 {
+                                     "Sid": "AllowPull",
+                                     "Effect": "Allow",
+                                     "Action": [
+                                         "ecr:BatchGetImage",
+                                         "ecr:GetDownloadUrlForLayer"
+                                     ],
+                                     "Principal": {
+                                         "AWS": ["arn:aws:iam::${AWS_APPLICATION_ACCOUNT_NUMBER}:root"]
+                                     }
+                                 }
+                             ]
+                         }
+                         """
+                         writeFile file: 'ecr_policy.json', text: ecrPolicyJSON
+
+                         sh(script: "aws ecr get-repository-policy --region ${AWS_REGION} --repository-name ${ECR_REPO_NAME} || aws ecr set-repository-policy --region ${AWS_REGION} --repository-name ${ECR_REPO_NAME} --policy-text \"\$(cat ecr_policy.json)\"", returnStdout: true)
+                     }
+                 }
+             }
+         }
+
         stage('Switch K8S context') {
             steps {
                 kubectlSwitchContextApp()
