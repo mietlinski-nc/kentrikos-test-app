@@ -10,12 +10,12 @@ pipeline {
     }
 
     environment {
-        K8S_FLAVOR = 'kops'
-        REPO_URL = 'https://github.com/radepal/kentrikos-test-app.git'
-        APP_NAME = 'kentrikos-hello-app'
+        K8S_FLAVOR = 'eks'
+        REPO_URL = 'https://github.com/mietlinski-nc/kentrikos-test-app.git'
+        APP_NAME = 'kentrikos-hello-app-mm'
         ECR_REPO_NAME = "$PRODUCT_DOMAIN_NAME-$ENVIRONMENT_TYPE/$APP_NAME"
         ECR_REPO = "$AWS_OPERATIONS_ACCOUNT_NUMBER" + ".dkr.ecr." + "$AWS_REGION" + ".amazonaws.com/$ECR_REPO_NAME"
-        CONFIG_DIR = "operations/$AWS_REGION/env-$K8S_FLAVOR"
+        CONFIG_DIR = "application/$AWS_REGION/env-$K8S_FLAVOR"
     }
     agent any
     stages {
@@ -55,13 +55,14 @@ pipeline {
         }
         stage('Switch K8S context') {
             steps {
-                kubectlSwitchContextOps()
+                kubectlSwitchContextApp()
             }
         }
 
         stage('Create $PRODUCT_DOMAIN_NAME namespace') {
             steps {
                 withProxyEnv() {
+                withAWS(role: "$CROSS_ACCOUNT_ROLE_NAME", roleAccount: "$AWS_APPLICATION_ACCOUNT_NUMBER") {
                     script {
                         sh '''
                                     #!/bin/bash -x
@@ -71,25 +72,7 @@ pipeline {
                                         kubectl create namespace $PRODUCT_DOMAIN_NAME
                                     fi
                                     '''
-                    }
-                }
-            }
-        }
-        stage('Get Domain name') {
-            steps {
-                ws("${env.JOB_NAME}-config") {
-                    gitCloneConfigRepo()
-                    dir("$CONFIG_DIR") {
-                        withProxyEnv() {
-                            script {
-                                def jenkins_parameters = readYaml file: 'jenkins/parameters.yaml'
-                                println "Getting domain name"
-                                def r53DomainName = sh(script: "aws route53 get-hosted-zone --id " + jenkins_parameters.domainHostedZoneID + " --output text --query 'HostedZone.Name'",
-                                        returnStdout: true).trim().replaceAll("\\.\$", "")
-                                app_address = "$APP_NAME." + jenkins_parameters.domainAliasPrefix + "." + r53DomainName
-                            }
-                        }
-                    }
+                    }}
                 }
             }
         }
@@ -97,12 +80,13 @@ pipeline {
         stage('Deploy application') {
             steps {
                 withProxyEnv() {
+                withAWS(role: "$CROSS_ACCOUNT_ROLE_NAME", roleAccount: "$AWS_APPLICATION_ACCOUNT_NUMBER") {
                     script {
                         sh """
                            #!/bin/bash
-                           helm upgrade --install --wait --set image.repository=$ECR_REPO  --set=ingress.enabled=true,ingress.hosts={$app_address} --namespace $PRODUCT_DOMAIN_NAME $APP_NAME helm/
+                           helm upgrade --install --wait --set image.repository=$ECR_REPO  --set=ingress.enabled=true --namespace $PRODUCT_DOMAIN_NAME $APP_NAME helm/
                          """
-                    }
+                    }}
                 }
             }
         }
